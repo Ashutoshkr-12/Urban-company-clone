@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id // Clerk userId
+  email       String   @unique
+  phoneNumber String?
+  fullName    String   @default("user")
+  imageUrl    String
+  role        UserRole @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings  Booking[]
+  addresses Address[]
+  reviews   Review[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+//services
+model Service {
+  id       String @id @default(uuid())
+  name     String
+  category String
+  price    Int
+  images  String[]
+  rating   Float  @default(0)
+
+  reviews  Review[]
+  bookings Booking[]
+}
+
+//Booking Schema (Customer books provider)
+model Booking {
+  id        String        @id @default(uuid())
+  userId    String
+  serviceId String
+  date      DateTime
+  status    BookingStatus @default(PENDING)
+  amount    Float
+  addressId String // link to user's address
+  createdAt DateTime      @default(now())
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id])
+  service Service  @relation(fields: [serviceId], references: [id])
+  address Address  @relation(fields: [addressId], references: [id])
+  reviews Review[]
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+model Address {
+  id          String  @id @default(uuid())
+  userId      String
+  phoneNumber String?
+  pincode     String
+  area        String
+  city        String
+  state       String
+
+  user     User      @relation(fields: [userId], references: [id])
+  bookings Booking[]
+}
+
+//Reviews Schema (Customer rates provider)
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  serviceId String
+  bookingId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+}

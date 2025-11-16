@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from 'react-hot-toast';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +28,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased scroll-smooth`}
       >
+        <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        disableTransitionOnChange>
+        <ClerkProvider>
+           <Toaster />
         {children}
+        </ClerkProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
