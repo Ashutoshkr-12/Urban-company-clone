@@ -1,4 +1,3 @@
-
 import uploadToCloudinary from "@/lib/cloudinary";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -56,3 +55,13 @@ export async function POST(req: NextRequest){
     return NextResponse.json({ success: false, error: "Error from server"}, { status: 500})
    }
 }
+
+export async function GET(){
+    try {
+        const services = await prisma.service.findMany({});
+        return NextResponse.json({success: true, data: services},{ status: 200})
+    } catch (error) {
+        return NextResponse.json({success: false,error: 'unable to fetch data from server'},{ status: 500})
+    }
+}
+

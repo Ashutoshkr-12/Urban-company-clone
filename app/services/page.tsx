@@ -1,5 +1,5 @@
 'use client'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,12 +7,44 @@ import { Input } from "@/components/ui/input";
 import { Star, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
-
+interface Service {
+  id: string;
+  name : string;
+  category: string;
+  price: number;
+  images: string[]
+}
 const Services = () => {
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [services, setServices] = useState< Service[] >([]);
   
+  useEffect(()=> {
+    const fetchServices = async() => {
+      const res = await fetch("/api/add-services",{
+        method: "GET"
+      }
+    )
+    const data = await res.json()
+    if(data.success){
+      setServices(data.data)
+    }else{
+      toast.error(data.error)
+    }
+    }
+    
+    fetchServices()
+  },[])
+
+  //console.log('services:', services)
   const categories = [
     { id: "cleaning", name: "Cleaning", count: 12 },
     { id: "repair", name: "Repair & Maintenance", count: 18 },
@@ -20,7 +52,7 @@ const Services = () => {
     { id: "appliance", name: "Appliance Service", count: 15 },
   ];
 
-  const services = [
+  const service = [
     {
       id: 1,
       title: "House Deep Cleaning",
@@ -30,7 +62,7 @@ const Services = () => {
       duration: "2-3 hours",
       rating: 4.8,
       reviews: 1250,
-      image: "🏠",
+      image: "🚑",
     },
     {
       id: 2,
@@ -112,8 +144,8 @@ const Services = () => {
   ];
 
   const filteredServices = services.filter((service) =>
-    service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchQuery.toLowerCase())
+    service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -161,11 +193,25 @@ const Services = () => {
           {filteredServices.map((service) => (
             <Card key={service.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="text-5xl mb-4">{service.image}</div>
+                <div className="mb-2">
+   <Carousel className="w-full max-w-xl mx-auto">
+  <CarouselContent>
+    {service.images.map((img, index) => (
+      <CarouselItem key={index}>
+        <img
+          src={img}
+          alt={`service-image-${index}`}
+          className="w-full h-64 object-cover rounded-xl"
+        />
+      </CarouselItem>
+    ))}
+  </CarouselContent>
+</Carousel>
+                </div>
                 <CardTitle className="text-xl">{service.title}</CardTitle>
-                <CardDescription className="line-clamp-2">
+                {/* <CardDescription className="line-clamp-2">
                   {service.description}
-                </CardDescription>
+                </CardDescription> */}
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -183,10 +229,10 @@ const Services = () => {
                   </div>
                   
                   <div className="text-sm text-muted-foreground">
-                    ⏱️ {service.duration}
+                    ⏱️ 2hr
                   </div>
                   
-                  <Link href={`/services/${service.id}`}>
+                  <Link href={`/service-details/${service.id}`}>
                     <Button className="w-full">View Details</Button>
                   </Link>
                 </div>
