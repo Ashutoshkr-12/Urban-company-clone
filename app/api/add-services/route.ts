@@ -56,12 +56,48 @@ export async function POST(req: NextRequest){
    }
 }
 
-export async function GET(){
-    try {
-        const services = await prisma.service.findMany({});
-        return NextResponse.json({success: true, data: services},{ status: 200})
-    } catch (error) {
-        return NextResponse.json({success: false,error: 'unable to fetch data from server'},{ status: 500})
-    }
+
+export async function GET() {
+  try {
+    // 1. Fetch all services
+    const services = await prisma.service.findMany({});
+
+    // 2. Add reviewCount to each service
+    const servicesWithCount = await Promise.all(
+      services.map(async (service) => {
+        const reviewCount = await prisma.review.count({
+          where: { serviceId: service.id },
+        });
+
+        return {
+          ...service,
+          reviewCount,
+        };
+      })
+    );
+
+    return NextResponse.json(
+      { success: true, data: servicesWithCount },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { success: false, error: "Unable to fetch data" },
+      { status: 500 }
+    );
+  }
 }
+
+
+// export async function GET(){
+
+//     try {
+//         const services = await prisma.service.findMany({});
+//         return NextResponse.json({success: true, data: services},{ status: 200})
+//     } catch (error) {
+//         return NextResponse.json({success: false,error: 'unable to fetch data from server'},{ status: 500})
+//     }
+// }
 

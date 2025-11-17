@@ -21,11 +21,13 @@ interface Service {
   name : string;
   category: string;
   price: number;
-  images: string[]
+  images: string[];
+  reviewCount: string[];
 }
 const Services = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [services, setServices] = useState< Service[] >([]);
+  
   
   useEffect(()=> {
     const fetchServices = async() => {
@@ -36,6 +38,7 @@ const Services = () => {
     const data = await res.json()
     if(data.success){
       setServices(data.data)
+      
     }else{
       toast.error(data.error)
     }
@@ -46,10 +49,10 @@ const Services = () => {
 
   //console.log('services:', services)
   const categories = [
-    { id: "cleaning", name: "Cleaning", count: 12 },
-    { id: "repair", name: "Repair & Maintenance", count: 18 },
-    { id: "beauty", name: "Beauty & Wellness", count: 8 },
-    { id: "appliance", name: "Appliance Service", count: 15 },
+    { id: "cleaning", name: "Cleaning"},
+    { id: "repair", name: "Repair & Maintenance" },
+    { id: "beauty", name: "Beauty & Wellness" },
+    { id: "appliance", name: "Appliance Service"},
   ];
 
   const service = [
@@ -183,7 +186,7 @@ const Services = () => {
               variant="outline"
               className="px-4 py-2 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
             >
-              {category.name} ({category.count})
+              {category.name} 
             </Badge>
           ))}
         </div>
@@ -208,28 +211,26 @@ const Services = () => {
   </CarouselContent>
 </Carousel>
                 </div>
-                <CardTitle className="text-xl">{service.title}</CardTitle>
+                <CardTitle className="text-xl">{service.name}</CardTitle>
                 {/* <CardDescription className="line-clamp-2">
                   {service.description}
                 </CardDescription> */}
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="">
+                  <div className="py-2">
                     <span className="text-2xl font-bold text-primary">
-                      {service.price}
+                      ₹ {service.price}
                     </span>
                     <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-accent text-accent" />
-                      <span className="font-medium">{service.rating}</span>
-                      <span className="text-sm text-muted-foreground">
-                        ({service.reviews})
+                      <span className="text-md text-muted-foreground">
+                        {service.reviewCount} reviews
                       </span>
                     </div>
                   </div>
                   
                   <div className="text-sm text-muted-foreground">
-                    ⏱️ 2hr
+                     <b>max time:</b>⏱️ 2hr
                   </div>
                   
                   <Link href={`/service-details/${service.id}`}>

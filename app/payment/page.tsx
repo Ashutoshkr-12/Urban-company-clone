@@ -29,10 +29,7 @@ const Payment = () => {
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success({
-      title: "Payment Successful! 🎉",
-      description: "Your booking has been confirmed. Check your email for details.",
-    });
+    toast.success("Payment Successful!")
     setTimeout(() => {
       redirect("/");
     }, 2000);

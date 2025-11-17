@@ -2,28 +2,94 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Clock, Shield, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Star, Clock, Shield, ArrowLeft, CheckCircle2, Plus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
+interface reviewUser {
+  fullName: string;
+}
+interface Review {
+  id: string;
+  user: reviewUser | null;
+  rating: number;
+  comment: string;
+  createdAt: string
+}
+interface Service {
+  id: string;
+  name : string;
+  category: string;
+  price: number;
+  images: string[];
+  reviews: Review[];
+}
 
 const ServiceDetail = () => {
   const { id } = useParams();
-  const [service, setService] = useState(null);
+  //console.log('id:',id)
+  const [service, setService] = useState< Service >();
+  const [isAddWorkerOpen, setIsAddWorkerOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
 
-  useEffect(()=> {
-    async function load(){
-      const res = await fetch(`/api/unique-service${id}`,{
-        method: "GET"
-      })
-      const data = await res.json();
-      setService(data)
-    }
-  },[])
-  //console.log('service:',service)
-  // Mock service data (in real app, fetch from backend)
+
+
+const loadService = async () => {
+  const res = await fetch("/api/unique-services", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ id })
+  });
+  const data = await res.json();
+  setService(data.data);
+};
+
+useEffect(() => {
+  loadService();
+}, [id]);
+
+ 
+const handleReviewSubmit = async (e: any) => {
+  e.preventDefault();
+
+  const res = await fetch("/api/reviews", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      serviceId: id,
+      rating,
+      comment
+    })
+  });
+  const data = await res.json();
+  if (data.success) {
+    // close dialog
+    setIsAddWorkerOpen(false);
+    loadService();  
+    // reset fields
+    setRating(5);
+    setComment("");
+  } else {
+    console.error("Review error:", data.error);
+  }
+};
+
+
   const services = {
     id: Number(id),
     title: "House Deep Cleaning",
@@ -85,24 +151,38 @@ const ServiceDetail = () => {
             {/* Service Header */}
             <Card>
               <CardHeader>
-                <div className="flex items-start gap-4">
-                  <div className="text-6xl">{services.image}</div>
-                  <div className="flex-1">
-                    <Badge className="mb-2">{services.category}</Badge>
-                    <CardTitle className="text-3xl mb-2">{services.title}</CardTitle>
-                    <CardDescription className="text-base">
+                <div className=" md:flex md:items-start  gap-4">
+                    <div className="mb-2">
+   <Carousel className="w-64 md:w-96 max-w-xl mx-auto">
+  <CarouselContent>
+    {service?.images?.map((img, index) => (
+      <CarouselItem key={index}>
+        <img
+          src={img}
+          alt={`service-image-${index}`}
+          className="w-full h-64 object-cover md:object-fit rounded-xl"
+        />
+      </CarouselItem>
+    ))}
+  </CarouselContent>
+</Carousel>
+                </div>
+                  <div className="">
+                    <Badge className="mb-2">{service?.category}</Badge>
+                    <CardTitle className="text-3xl mb-2">{service?.name}</CardTitle>
+                    {/* <CardDescription className="text-base">
                       {services.description}
-                    </CardDescription>
+                    </CardDescription> */}
                     
                     <div className="flex flex-wrap items-center gap-4 mt-4">
                       <div className="flex items-center gap-1">
                         <Star className="h-5 w-5 fill-accent text-accent" />
-                        <span className="font-bold">{services.rating}</span>
-                        <span className="text-muted-foreground">({services.reviewCount} reviews)</span>
+                        <span className="font-bold"></span>
+                        <span className="text-muted-foreground">{service?.reviews.length} reviews</span>
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="h-5 w-5" />
-                        <span>{services.duration}</span>
+                        <span>2-3 hours</span>
                       </div>
                     </div>
                   </div>
@@ -111,7 +191,7 @@ const ServiceDetail = () => {
             </Card>
 
             {/* What's Included */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>What's Included</CardTitle>
               </CardHeader>
@@ -125,57 +205,96 @@ const ServiceDetail = () => {
                   ))}
                 </ul>
               </CardContent>
-            </Card>
-
-            {/* Available Workers */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Professionals</CardTitle>
-                <CardDescription>Choose from our verified service providers</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {services.workers.map((worker) => (
-                  <div key={worker.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-semibold">{worker.name}</h4>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                        <span className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-accent text-accent" />
-                          {worker.rating}
-                        </span>
-                        <span>{worker.experience} exp</span>
-                        <span>{worker.completedJobs} jobs</span>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                      Verified
-                    </Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Reviews */}
             <Card>
               <CardHeader>
-                <CardTitle>Customer Reviews</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {services.customerReviews.map((review) => (
-                  <div key={review.id} className="border-b pb-4 last:border-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">{review.user}</span>
-                      <span className="text-sm text-muted-foreground">{review.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1 mb-2">
-                      {Array.from({ length: review.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground">{review.comment}</p>
+                
+                <CardTitle>
+                  <div className="w-full flex justify-between">
+                    <span>Customer Reviews</span>
+                    <Dialog open={isAddWorkerOpen} onOpenChange={setIsAddWorkerOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                write a review
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+  <DialogHeader>
+    <DialogTitle>Write a Review</DialogTitle>
+    <DialogDescription>
+      Share your experience with this service.
+    </DialogDescription>
+  </DialogHeader>
+
+  <form onSubmit={handleReviewSubmit} className="space-y-4">
+    <div className="space-y-2">
+      <Label>Rating *</Label>
+      <Input
+        type="number"
+        min="1"
+        max="5"
+        required
+        value={rating}
+        onChange={(e) => setRating(Number(e.target.value))}
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>Comment (optional)</Label>
+      <Input
+        type="text"
+        placeholder="Write your feedback..."
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
+    </div>
+
+    <Button type="submit" className="w-full">
+      Submit Review
+    </Button>
+  </form>
+</DialogContent>
+
+          </Dialog>
                   </div>
-                ))}
-              </CardContent>
+                </CardTitle>
+                
+              </CardHeader>
+            <CardContent className="space-y-4">
+  {service?.reviews.map((review) => (
+    <div key={review.id} className="border-b pb-4 last:border-0">
+      <div className="flex items-center justify-between mb-2">
+        
+        {/* USER NAME */}
+        <span className="font-semibold">
+          {review.user?.fullName || "Anonymous"}
+        </span>
+
+        {/* DATE */}
+        <span className="text-sm text-muted-foreground">
+          {new Date(review.createdAt).toLocaleDateString()}
+        </span>
+      </div>
+
+      {/* STARS */}
+      <div className="flex items-center gap-1 mb-2">
+        {Array.from({ length: review.rating }).map((_, i) => (
+          <Star
+            key={i}
+            className="h-4 w-4 bg-yellow-400 fill-accent text-accent"
+          />
+        ))}
+      </div>
+
+      {/* COMMENT */}
+      <p className="text-muted-foreground">{review.comment}</p>
+    </div>
+  ))}
+</CardContent>
+
             </Card>
           </div>
 
@@ -188,9 +307,9 @@ const ServiceDetail = () => {
               <CardContent className="space-y-6">
                 <div>
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-3xl font-bold text-primary">{services.price}</span>
+                    <span className="text-3xl font-bold text-primary">{service?.price}</span>
                     <span className="text-lg text-muted-foreground line-through">
-                      {services.originalPrice}
+                      {service?.price! * 1.4}
                     </span>
                   </div>
                   <p className="text-sm text-success font-medium">Save 38% today!</p>
@@ -211,7 +330,7 @@ const ServiceDetail = () => {
                   </div>
                 </div>
 
-                <Link href={`/booking/${services.id}`} className="block">
+                <Link href={`/booking/${service?.id}`} className="block">
                   <Button className="w-full" size="lg">
                     Proceed to Book
                   </Button>

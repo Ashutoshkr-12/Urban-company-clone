@@ -114,8 +114,8 @@ const Home = () => {
                     <span className="font-medium">{service.rating}</span>
                   </div>
                 </div>
-                <Link href={`/services/${service.id}`}>
-                  <Button className="w-full">Book Now</Button>
+                <Link href={`/services`}>
+                  <Button className="w-full">Checkout</Button>
                 </Link>
               </CardContent>
             </Card>

@@ -1,6 +1,5 @@
 'use client'
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,10 +12,10 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
+import { redirect, useParams } from "next/navigation";
 
 const Booking = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [date, setDate] = useState<Date>();
   const [selectedWorker, setSelectedWorker] = useState("1");
   const [selectedTime, setSelectedTime] = useState("10:00");
@@ -27,7 +26,7 @@ const Booking = () => {
 
   const handleBooking = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/payment/${id}`);
+    redirect(`/payment/${id}`);
   };
 
   return (
@@ -202,7 +201,7 @@ const Booking = () => {
 
             {/* Submit */}
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+              <Button type="button" variant="outline" onClick={() => redirect('/')}>
                 Cancel
               </Button>
               <Button type="submit" size="lg">
